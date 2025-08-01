@@ -190,11 +190,18 @@ namespace SIMS_APP.Controllers
         {
             var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
             
+            Console.WriteLine($"GetMyCourses called for UserId: {userId}");
+            
             var student = await _context.Students
                 .FirstOrDefaultAsync(s => s.UserId == userId);
 
             if (student == null)
+            {
+                Console.WriteLine($"Student not found for UserId: {userId}");
                 return NotFound();
+            }
+
+            Console.WriteLine($"Found student: {student.FirstName} {student.LastName} (ID: {student.Id})");
 
             var courses = await _context.StudentCourses
                 .Include(sc => sc.Course)
@@ -212,6 +219,8 @@ namespace SIMS_APP.Controllers
                     LetterGrade = sc.LetterGrade
                 })
                 .ToListAsync();
+
+            Console.WriteLine($"Found {courses.Count} courses for student {student.Id}");
 
             return Ok(courses);
         }

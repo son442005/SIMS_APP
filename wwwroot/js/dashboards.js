@@ -389,6 +389,25 @@ const EnrollmentsTab = ({ enrollments, onRefresh }) => {
         studentId: '',
         courseId: ''
     });
+    const [students, setStudents] = useState([]);
+    const [courses, setCourses] = useState([]);
+
+    useEffect(() => {
+        loadStudentsAndCourses();
+    }, []);
+
+    const loadStudentsAndCourses = async () => {
+        try {
+            const [studentsRes, coursesRes] = await Promise.all([
+                axios.get('/students'),
+                axios.get('/courses')
+            ]);
+            setStudents(studentsRes.data);
+            setCourses(coursesRes.data);
+        } catch (error) {
+            console.error('Error loading students and courses:', error);
+        }
+    };
 
     const handleEnrollStudent = async (e) => {
         e.preventDefault();
@@ -422,22 +441,32 @@ const EnrollmentsTab = ({ enrollments, onRefresh }) => {
                     <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
                         <h3 className="text-lg font-medium mb-4">Enroll Student in Course</h3>
                         <form onSubmit={handleEnrollStudent} className="space-y-4">
-                            <input
-                                type="number"
+                            <select
                                 required
-                                placeholder="Student ID"
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
                                 value={formData.studentId}
                                 onChange={(e) => setFormData({ ...formData, studentId: e.target.value })}
-                            />
-                            <input
-                                type="number"
+                            >
+                                <option value="">Select Student</option>
+                                {students.map((student) => (
+                                    <option key={student.id} value={student.id}>
+                                        {student.firstName} {student.lastName} ({student.studentId})
+                                    </option>
+                                ))}
+                            </select>
+                            <select
                                 required
-                                placeholder="Course ID"
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
                                 value={formData.courseId}
                                 onChange={(e) => setFormData({ ...formData, courseId: e.target.value })}
-                            />
+                            >
+                                <option value="">Select Course</option>
+                                {courses.map((course) => (
+                                    <option key={course.id} value={course.id}>
+                                        {course.name} ({course.code})
+                                    </option>
+                                ))}
+                            </select>
                             <div className="flex space-x-2">
                                 <button
                                     type="submit"
