@@ -6,6 +6,9 @@ const AdminDashboard = () => {
     const [courses, setCourses] = useState([]);
     const [enrollments, setEnrollments] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(10);
 
     useEffect(() => {
         loadData();
@@ -32,6 +35,58 @@ const AdminDashboard = () => {
         logout();
     };
 
+    // Filter and pagination logic
+    const getFilteredItems = (items) => {
+        if (!searchTerm) return items;
+        return items.filter(item => 
+            Object.values(item).some(value => 
+                value && value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+            )
+        );
+    };
+
+    const getPaginatedItems = (items) => {
+        const filtered = getFilteredItems(items);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        return filtered.slice(startIndex, startIndex + itemsPerPage);
+    };
+
+    const totalPages = (items) => {
+        return Math.ceil(getFilteredItems(items).length / itemsPerPage);
+    };
+
+    const renderPagination = (items) => {
+        const total = totalPages(items);
+        if (total <= 1) return null;
+
+        return (
+            <div className="flex justify-between items-center mt-4">
+                <div className="text-sm text-gray-700">
+                    Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, getFilteredItems(items).length)} of {getFilteredItems(items).length} results
+                </div>
+                <div className="flex space-x-2">
+                    <button
+                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                        disabled={currentPage === 1}
+                        className="px-3 py-1 text-sm bg-gray-300 text-gray-700 rounded disabled:opacity-50"
+                    >
+                        Previous
+                    </button>
+                    <span className="px-3 py-1 text-sm text-gray-700">
+                        Page {currentPage} of {total}
+                    </span>
+                    <button
+                        onClick={() => setCurrentPage(Math.min(total, currentPage + 1))}
+                        disabled={currentPage === total}
+                        className="px-3 py-1 text-sm bg-gray-300 text-gray-700 rounded disabled:opacity-50"
+                    >
+                        Next
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="min-h-screen bg-gray-100">
             <nav className="bg-white shadow-sm">
@@ -40,10 +95,22 @@ const AdminDashboard = () => {
                         <div className="flex items-center">
                             <h1 className="text-xl font-semibold text-gray-900">SIMS Admin Dashboard</h1>
                         </div>
-                        <div className="flex items-center">
+                        <div className="flex items-center space-x-4">
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    placeholder="Search..."
+                                    className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                    value={searchTerm}
+                                    onChange={(e) => {
+                                        setSearchTerm(e.target.value);
+                                        setCurrentPage(1);
+                                    }}
+                                />
+                            </div>
                             <button
                                 onClick={handleLogout}
-                                className="ml-4 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
+                                className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
                             >
                                 Logout
                             </button>
@@ -61,42 +128,58 @@ const AdminDashboard = () => {
                                 className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'students'
                                     ? 'border-indigo-500 text-indigo-600'
                                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                    }`}
+                                }`}
                             >
-                                Students
+                                Students ({students.length})
                             </button>
                             <button
                                 onClick={() => setActiveTab('courses')}
                                 className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'courses'
                                     ? 'border-indigo-500 text-indigo-600'
                                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                    }`}
+                                }`}
                             >
-                                Courses
+                                Courses ({courses.length})
                             </button>
                             <button
                                 onClick={() => setActiveTab('enrollments')}
                                 className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'enrollments'
                                     ? 'border-indigo-500 text-indigo-600'
                                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                    }`}
+                                }`}
                             >
-                                Enrollments
+                                Enrollments ({enrollments.length})
                             </button>
                         </nav>
                     </div>
 
-                    <div className="mt-6">
-                        {loading ? (
-                            <div className="text-center py-4">Loading...</div>
-                        ) : (
-                            <>
-                                {activeTab === 'students' && <StudentsTab students={students} onRefresh={loadData} />}
-                                {activeTab === 'courses' && <CoursesTab courses={courses} onRefresh={loadData} />}
-                                {activeTab === 'enrollments' && <EnrollmentsTab enrollments={enrollments} onRefresh={loadData} />}
-                            </>
-                        )}
-                    </div>
+                    {loading ? (
+                        <div className="text-center py-4">Loading...</div>
+                    ) : (
+                        <div className="mt-6">
+                            {activeTab === 'students' && (
+                                <StudentsTab 
+                                    students={getPaginatedItems(students)} 
+                                    onRefresh={loadData}
+                                    pagination={renderPagination(students)}
+                                />
+                            )}
+                            {activeTab === 'courses' && (
+                                <CoursesTab 
+                                    courses={getPaginatedItems(courses)} 
+                                    onRefresh={loadData}
+                                    pagination={renderPagination(courses)}
+                                />
+                            )}
+                            {activeTab === 'enrollments' && (
+                                <EnrollmentsTab 
+                                    enrollments={getPaginatedItems(enrollments)} 
+                                    onRefresh={loadData}
+                                    pagination={renderPagination(enrollments)}
+                                />
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
@@ -104,7 +187,7 @@ const AdminDashboard = () => {
 };
 
 // Students Tab Component
-const StudentsTab = ({ students, onRefresh }) => {
+const StudentsTab = ({ students, onRefresh, pagination }) => {
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [showEditForm, setShowEditForm] = useState(false);
     const [editingStudent, setEditingStudent] = useState(null);
@@ -206,7 +289,7 @@ const StudentsTab = ({ students, onRefresh }) => {
     return (
         <div>
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-medium text-gray-900">Students</h2>
+                <h2 className="text-lg font-medium text-gray-900">Students Management</h2>
                 <button
                     onClick={() => setShowCreateForm(true)}
                     className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
@@ -390,49 +473,60 @@ const StudentsTab = ({ students, onRefresh }) => {
             )}
 
             <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                <ul className="divide-y divide-gray-200">
-                    {students.map((student) => (
-                        <li key={student.id} className="px-6 py-4">
-                            <div className="flex items-center justify-between">
-                                <div className="flex-1">
-                                    <h3 className="text-sm font-medium text-gray-900">
-                                        {student.firstName} {student.lastName}
-                                    </h3>
-                                    <p className="text-sm text-gray-500">{student.email}</p>
-                                    <p className="text-sm text-gray-500">Student ID: {student.studentId}</p>
-                                    <p className="text-sm text-gray-500">Username: {student.username}</p>
-                                    {student.phoneNumber && (
-                                        <p className="text-sm text-gray-500">Phone: {student.phoneNumber}</p>
-                                    )}
-                                    {student.address && (
-                                        <p className="text-sm text-gray-500">Address: {student.address}</p>
-                                    )}
+                {students.length === 0 ? (
+                    <div className="px-6 py-4 text-center text-gray-500">
+                        No students found.
+                    </div>
+                ) : (
+                    <ul className="divide-y divide-gray-200">
+                        {students.map((student) => (
+                            <li key={student.id} className="px-6 py-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex-1">
+                                        <h3 className="text-sm font-medium text-gray-900">
+                                            {student.firstName} {student.lastName}
+                                        </h3>
+                                        <p className="text-sm text-gray-500">{student.email}</p>
+                                        <p className="text-sm text-gray-500">Student ID: {student.studentId}</p>
+                                        <p className="text-sm text-gray-500">Username: {student.username}</p>
+                                        {student.phoneNumber && (
+                                            <p className="text-sm text-gray-500">Phone: {student.phoneNumber}</p>
+                                        )}
+                                        {student.address && (
+                                            <p className="text-sm text-gray-500">Address: {student.address}</p>
+                                        )}
+                                        <p className="text-sm text-gray-500">
+                                            Created: {new Date(student.createdAt).toLocaleDateString()}
+                                        </p>
+                                    </div>
+                                    <div className="flex space-x-2">
+                                        <button
+                                            onClick={() => openEditForm(student)}
+                                            className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteStudent(student.id)}
+                                            className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
                                 </div>
-                                <div className="flex space-x-2">
-                                    <button
-                                        onClick={() => openEditForm(student)}
-                                        className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        onClick={() => handleDeleteStudent(student.id)}
-                                        className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
-                                    >
-                                        Delete
-                                    </button>
-                                </div>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
+                            </li>
+                        ))}
+                    </ul>
+                )}
             </div>
+
+            {pagination}
         </div>
     );
 };
 
 // Courses Tab Component
-const CoursesTab = ({ courses, onRefresh }) => {
+const CoursesTab = ({ courses, onRefresh, pagination }) => {
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [showEditForm, setShowEditForm] = useState(false);
     const [editingCourse, setEditingCourse] = useState(null);
@@ -511,7 +605,7 @@ const CoursesTab = ({ courses, onRefresh }) => {
     return (
         <div>
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-medium text-gray-900">Courses</h2>
+                <h2 className="text-lg font-medium text-gray-900">Courses Management</h2>
                 <button
                     onClick={() => setShowCreateForm(true)}
                     className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
@@ -649,49 +743,57 @@ const CoursesTab = ({ courses, onRefresh }) => {
             )}
 
             <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                <ul className="divide-y divide-gray-200">
-                    {courses.map((course) => (
-                        <li key={course.id} className="px-6 py-4">
-                            <div className="flex items-center justify-between">
-                                <div className="flex-1">
-                                    <h3 className="text-sm font-medium text-gray-900">
-                                        {course.name} ({course.code})
-                                    </h3>
-                                    {course.description && (
-                                        <p className="text-sm text-gray-500">{course.description}</p>
-                                    )}
-                                    <p className="text-sm text-gray-500">
-                                        Credits: {course.credits} | Instructor: {course.instructor || 'TBD'}
-                                    </p>
-                                    <p className="text-sm text-gray-500">
-                                        Created: {new Date(course.createdAt).toLocaleDateString()}
-                                    </p>
+                {courses.length === 0 ? (
+                    <div className="px-6 py-4 text-center text-gray-500">
+                        No courses found.
+                    </div>
+                ) : (
+                    <ul className="divide-y divide-gray-200">
+                        {courses.map((course) => (
+                            <li key={course.id} className="px-6 py-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex-1">
+                                        <h3 className="text-sm font-medium text-gray-900">
+                                            {course.name} ({course.code})
+                                        </h3>
+                                        {course.description && (
+                                            <p className="text-sm text-gray-500">{course.description}</p>
+                                        )}
+                                        <p className="text-sm text-gray-500">
+                                            Credits: {course.credits} | Instructor: {course.instructor || 'TBD'}
+                                        </p>
+                                        <p className="text-sm text-gray-500">
+                                            Created: {new Date(course.createdAt).toLocaleDateString()}
+                                        </p>
+                                    </div>
+                                    <div className="flex space-x-2">
+                                        <button
+                                            onClick={() => openEditForm(course)}
+                                            className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteCourse(course.id)}
+                                            className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
                                 </div>
-                                <div className="flex space-x-2">
-                                    <button
-                                        onClick={() => openEditForm(course)}
-                                        className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        onClick={() => handleDeleteCourse(course.id)}
-                                        className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
-                                    >
-                                        Delete
-                                    </button>
-                                </div>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
+                            </li>
+                        ))}
+                    </ul>
+                )}
             </div>
+
+            {pagination}
         </div>
     );
 };
 
 // Enrollments Tab Component
-const EnrollmentsTab = ({ enrollments, onRefresh }) => {
+const EnrollmentsTab = ({ enrollments, onRefresh, pagination }) => {
     const [showEnrollForm, setShowEnrollForm] = useState(false);
     const [formData, setFormData] = useState({
         studentId: '',
@@ -746,7 +848,7 @@ const EnrollmentsTab = ({ enrollments, onRefresh }) => {
     return (
         <div>
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-medium text-gray-900">Enrollments</h2>
+                <h2 className="text-lg font-medium text-gray-900">Enrollments Management</h2>
                 <button
                     onClick={() => setShowEnrollForm(true)}
                     className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
@@ -807,39 +909,47 @@ const EnrollmentsTab = ({ enrollments, onRefresh }) => {
             )}
 
             <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                <ul className="divide-y divide-gray-200">
-                    {enrollments.map((enrollment) => (
-                        <li key={enrollment.id} className="px-6 py-4">
-                            <div className="flex items-center justify-between">
-                                <div className="flex-1">
-                                    <h3 className="text-sm font-medium text-gray-900">
-                                        {enrollment.studentName}
-                                    </h3>
-                                    <p className="text-sm text-gray-500">
-                                        {enrollment.courseName} ({enrollment.courseCode})
-                                    </p>
-                                    <p className="text-sm text-gray-500">
-                                        Enrolled: {new Date(enrollment.enrolledAt).toLocaleDateString()}
-                                    </p>
-                                    {enrollment.grade && (
+                {enrollments.length === 0 ? (
+                    <div className="px-6 py-4 text-center text-gray-500">
+                        No enrollments found.
+                    </div>
+                ) : (
+                    <ul className="divide-y divide-gray-200">
+                        {enrollments.map((enrollment) => (
+                            <li key={enrollment.id} className="px-6 py-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex-1">
+                                        <h3 className="text-sm font-medium text-gray-900">
+                                            {enrollment.studentName}
+                                        </h3>
                                         <p className="text-sm text-gray-500">
-                                            Grade: {enrollment.grade} {enrollment.letterGrade ? `(${enrollment.letterGrade})` : ''}
+                                            {enrollment.courseName} ({enrollment.courseCode})
                                         </p>
-                                    )}
+                                        <p className="text-sm text-gray-500">
+                                            Enrolled: {new Date(enrollment.enrolledAt).toLocaleDateString()}
+                                        </p>
+                                        {enrollment.grade && (
+                                            <p className="text-sm text-gray-500">
+                                                Grade: {enrollment.grade} {enrollment.letterGrade ? `(${enrollment.letterGrade})` : ''}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className="flex space-x-2">
+                                        <button
+                                            onClick={() => handleRemoveEnrollment(enrollment.id)}
+                                            className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+                                        >
+                                            Remove
+                                        </button>
+                                    </div>
                                 </div>
-                                <div className="flex space-x-2">
-                                    <button
-                                        onClick={() => handleRemoveEnrollment(enrollment.id)}
-                                        className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
-                                    >
-                                        Remove
-                                    </button>
-                                </div>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
+                            </li>
+                        ))}
+                    </ul>
+                )}
             </div>
+
+            {pagination}
         </div>
     );
 };
