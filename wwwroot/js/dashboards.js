@@ -59,8 +59,8 @@ const AdminDashboard = () => {
                             <button
                                 onClick={() => setActiveTab('students')}
                                 className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'students'
-                                        ? 'border-indigo-500 text-indigo-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    ? 'border-indigo-500 text-indigo-600'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                     }`}
                             >
                                 Students
@@ -68,8 +68,8 @@ const AdminDashboard = () => {
                             <button
                                 onClick={() => setActiveTab('courses')}
                                 className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'courses'
-                                        ? 'border-indigo-500 text-indigo-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    ? 'border-indigo-500 text-indigo-600'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                     }`}
                             >
                                 Courses
@@ -77,8 +77,8 @@ const AdminDashboard = () => {
                             <button
                                 onClick={() => setActiveTab('enrollments')}
                                 className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'enrollments'
-                                        ? 'border-indigo-500 text-indigo-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    ? 'border-indigo-500 text-indigo-600'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                     }`}
                             >
                                 Enrollments
@@ -446,8 +446,10 @@ const CoursesTab = ({ courses, onRefresh }) => {
 
     const handleCreateCourse = async (e) => {
         e.preventDefault();
+        console.log('Creating course with data:', formData);
         try {
-            await axios.post('/courses', formData);
+            const response = await axios.post('/courses', formData);
+            console.log('Course created successfully:', response.data);
             setShowCreateForm(false);
             setFormData({
                 name: '',
@@ -458,6 +460,8 @@ const CoursesTab = ({ courses, onRefresh }) => {
             });
             onRefresh();
         } catch (error) {
+            console.error('Error creating course:', error);
+            console.error('Error response:', error.response?.data);
             alert(error.response?.data?.message || 'Error creating course');
         }
     };

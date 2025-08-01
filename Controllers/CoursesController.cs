@@ -66,9 +66,14 @@ namespace SIMS_APP.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<CourseDTO>> CreateCourse([FromBody] CreateCourseRequest request)
         {
+            Console.WriteLine($"CreateCourse called with: Name={request.Name}, Code={request.Code}, Credits={request.Credits}");
+            
             // Check if course code already exists
             if (await _context.Courses.AnyAsync(c => c.Code == request.Code))
+            {
+                Console.WriteLine($"Course code {request.Code} already exists");
                 return BadRequest(new { message = "Course code already exists" });
+            }
 
             var course = new Course
             {
@@ -80,8 +85,19 @@ namespace SIMS_APP.Controllers
                 CreatedAt = DateTime.UtcNow
             };
 
+            Console.WriteLine($"Adding course to context: {course.Name} ({course.Code})");
             _context.Courses.Add(course);
-            await _context.SaveChangesAsync();
+            
+            try
+            {
+                await _context.SaveChangesAsync();
+                Console.WriteLine($"Course saved successfully with ID: {course.Id}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving course: {ex.Message}");
+                return BadRequest(new { message = "Error saving course to database" });
+            }
 
             var courseDto = new CourseDTO
             {
@@ -94,6 +110,7 @@ namespace SIMS_APP.Controllers
                 CreatedAt = course.CreatedAt
             };
 
+            Console.WriteLine($"Returning course DTO with ID: {courseDto.Id}");
             return CreatedAtAction(nameof(GetCourse), new { id = course.Id }, courseDto);
         }
 
