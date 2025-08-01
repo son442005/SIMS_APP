@@ -58,31 +58,28 @@ const AdminDashboard = () => {
                         <nav className="-mb-px flex space-x-8">
                             <button
                                 onClick={() => setActiveTab('students')}
-                                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                                    activeTab === 'students'
+                                className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'students'
                                         ? 'border-indigo-500 text-indigo-600'
                                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                }`}
+                                    }`}
                             >
                                 Students
                             </button>
                             <button
                                 onClick={() => setActiveTab('courses')}
-                                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                                    activeTab === 'courses'
+                                className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'courses'
                                         ? 'border-indigo-500 text-indigo-600'
                                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                }`}
+                                    }`}
                             >
                                 Courses
                             </button>
                             <button
                                 onClick={() => setActiveTab('enrollments')}
-                                className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                                    activeTab === 'enrollments'
+                                className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'enrollments'
                                         ? 'border-indigo-500 text-indigo-600'
                                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                }`}
+                                    }`}
                             >
                                 Enrollments
                             </button>
@@ -109,6 +106,8 @@ const AdminDashboard = () => {
 // Students Tab Component
 const StudentsTab = ({ students, onRefresh }) => {
     const [showCreateForm, setShowCreateForm] = useState(false);
+    const [showEditForm, setShowEditForm] = useState(false);
+    const [editingStudent, setEditingStudent] = useState(null);
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -146,6 +145,64 @@ const StudentsTab = ({ students, onRefresh }) => {
         }
     };
 
+    const handleEditStudent = async (e) => {
+        e.preventDefault();
+        try {
+            await axios.put(`/students/${editingStudent.id}`, {
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                email: formData.email,
+                studentId: formData.studentId,
+                phoneNumber: formData.phoneNumber,
+                dateOfBirth: new Date(formData.dateOfBirth).toISOString(),
+                address: formData.address
+            });
+            setShowEditForm(false);
+            setEditingStudent(null);
+            setFormData({
+                firstName: '',
+                lastName: '',
+                email: '',
+                studentId: '',
+                username: '',
+                password: '',
+                phoneNumber: '',
+                dateOfBirth: '',
+                address: ''
+            });
+            onRefresh();
+        } catch (error) {
+            alert(error.response?.data?.message || 'Error updating student');
+        }
+    };
+
+    const handleDeleteStudent = async (studentId) => {
+        if (confirm('Are you sure you want to delete this student?')) {
+            try {
+                await axios.delete(`/students/${studentId}`);
+                onRefresh();
+            } catch (error) {
+                alert(error.response?.data?.message || 'Error deleting student');
+            }
+        }
+    };
+
+    const openEditForm = (student) => {
+        setEditingStudent(student);
+        setFormData({
+            firstName: student.firstName,
+            lastName: student.lastName,
+            email: student.email,
+            studentId: student.studentId,
+            username: student.username,
+            password: '',
+            phoneNumber: student.phoneNumber || '',
+            dateOfBirth: student.dateOfBirth.split('T')[0],
+            address: student.address || ''
+        });
+        setShowEditForm(true);
+    };
+
     return (
         <div>
             <div className="flex justify-between items-center mb-4">
@@ -158,6 +215,7 @@ const StudentsTab = ({ students, onRefresh }) => {
                 </button>
             </div>
 
+            {/* Create Form */}
             {showCreateForm && (
                 <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
                     <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
@@ -211,6 +269,27 @@ const StudentsTab = ({ students, onRefresh }) => {
                                 value={formData.password}
                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                             />
+                            <input
+                                type="tel"
+                                placeholder="Phone Number (optional)"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                value={formData.phoneNumber}
+                                onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                            />
+                            <input
+                                type="date"
+                                required
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                value={formData.dateOfBirth}
+                                onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                            />
+                            <textarea
+                                placeholder="Address (optional)"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                rows="3"
+                                value={formData.address}
+                                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                            />
                             <div className="flex space-x-2">
                                 <button
                                     type="submit"
@@ -231,20 +310,117 @@ const StudentsTab = ({ students, onRefresh }) => {
                 </div>
             )}
 
+            {/* Edit Form */}
+            {showEditForm && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                    <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                        <h3 className="text-lg font-medium mb-4">Edit Student</h3>
+                        <form onSubmit={handleEditStudent} className="space-y-4">
+                            <input
+                                type="text"
+                                required
+                                placeholder="First Name"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                value={formData.firstName}
+                                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                            />
+                            <input
+                                type="text"
+                                required
+                                placeholder="Last Name"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                value={formData.lastName}
+                                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                            />
+                            <input
+                                type="email"
+                                required
+                                placeholder="Email"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                value={formData.email}
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            />
+                            <input
+                                type="text"
+                                required
+                                placeholder="Student ID"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                value={formData.studentId}
+                                onChange={(e) => setFormData({ ...formData, studentId: e.target.value })}
+                            />
+                            <input
+                                type="tel"
+                                placeholder="Phone Number (optional)"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                value={formData.phoneNumber}
+                                onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                            />
+                            <input
+                                type="date"
+                                required
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                value={formData.dateOfBirth}
+                                onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                            />
+                            <textarea
+                                placeholder="Address (optional)"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                rows="3"
+                                value={formData.address}
+                                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                            />
+                            <div className="flex space-x-2">
+                                <button
+                                    type="submit"
+                                    className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                                >
+                                    Update
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowEditForm(false)}
+                                    className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
             <div className="bg-white shadow overflow-hidden sm:rounded-md">
                 <ul className="divide-y divide-gray-200">
                     {students.map((student) => (
                         <li key={student.id} className="px-6 py-4">
                             <div className="flex items-center justify-between">
-                                <div>
+                                <div className="flex-1">
                                     <h3 className="text-sm font-medium text-gray-900">
                                         {student.firstName} {student.lastName}
                                     </h3>
                                     <p className="text-sm text-gray-500">{student.email}</p>
                                     <p className="text-sm text-gray-500">Student ID: {student.studentId}</p>
+                                    <p className="text-sm text-gray-500">Username: {student.username}</p>
+                                    {student.phoneNumber && (
+                                        <p className="text-sm text-gray-500">Phone: {student.phoneNumber}</p>
+                                    )}
+                                    {student.address && (
+                                        <p className="text-sm text-gray-500">Address: {student.address}</p>
+                                    )}
                                 </div>
-                                <div className="text-sm text-gray-500">
-                                    Username: {student.username}
+                                <div className="flex space-x-2">
+                                    <button
+                                        onClick={() => openEditForm(student)}
+                                        className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                                    >
+                                        Edit
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteStudent(student.id)}
+                                        className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+                                    >
+                                        Delete
+                                    </button>
                                 </div>
                             </div>
                         </li>
@@ -258,6 +434,8 @@ const StudentsTab = ({ students, onRefresh }) => {
 // Courses Tab Component
 const CoursesTab = ({ courses, onRefresh }) => {
     const [showCreateForm, setShowCreateForm] = useState(false);
+    const [showEditForm, setShowEditForm] = useState(false);
+    const [editingCourse, setEditingCourse] = useState(null);
     const [formData, setFormData] = useState({
         name: '',
         code: '',
@@ -284,6 +462,48 @@ const CoursesTab = ({ courses, onRefresh }) => {
         }
     };
 
+    const handleEditCourse = async (e) => {
+        e.preventDefault();
+        try {
+            await axios.put(`/courses/${editingCourse.id}`, formData);
+            setShowEditForm(false);
+            setEditingCourse(null);
+            setFormData({
+                name: '',
+                code: '',
+                description: '',
+                credits: 3,
+                instructor: ''
+            });
+            onRefresh();
+        } catch (error) {
+            alert(error.response?.data?.message || 'Error updating course');
+        }
+    };
+
+    const handleDeleteCourse = async (courseId) => {
+        if (confirm('Are you sure you want to delete this course?')) {
+            try {
+                await axios.delete(`/courses/${courseId}`);
+                onRefresh();
+            } catch (error) {
+                alert(error.response?.data?.message || 'Error deleting course');
+            }
+        }
+    };
+
+    const openEditForm = (course) => {
+        setEditingCourse(course);
+        setFormData({
+            name: course.name,
+            code: course.code,
+            description: course.description || '',
+            credits: course.credits,
+            instructor: course.instructor || ''
+        });
+        setShowEditForm(true);
+    };
+
     return (
         <div>
             <div className="flex justify-between items-center mb-4">
@@ -296,6 +516,7 @@ const CoursesTab = ({ courses, onRefresh }) => {
                 </button>
             </div>
 
+            {/* Create Form */}
             {showCreateForm && (
                 <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
                     <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
@@ -359,19 +580,102 @@ const CoursesTab = ({ courses, onRefresh }) => {
                 </div>
             )}
 
+            {/* Edit Form */}
+            {showEditForm && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+                    <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+                        <h3 className="text-lg font-medium mb-4">Edit Course</h3>
+                        <form onSubmit={handleEditCourse} className="space-y-4">
+                            <input
+                                type="text"
+                                required
+                                placeholder="Course Name"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                value={formData.name}
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            />
+                            <input
+                                type="text"
+                                required
+                                placeholder="Course Code"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                value={formData.code}
+                                onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                            />
+                            <textarea
+                                placeholder="Description"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                rows="3"
+                                value={formData.description}
+                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                            />
+                            <input
+                                type="number"
+                                required
+                                placeholder="Credits"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                value={formData.credits}
+                                onChange={(e) => setFormData({ ...formData, credits: parseInt(e.target.value) })}
+                            />
+                            <input
+                                type="text"
+                                placeholder="Instructor"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                value={formData.instructor}
+                                onChange={(e) => setFormData({ ...formData, instructor: e.target.value })}
+                            />
+                            <div className="flex space-x-2">
+                                <button
+                                    type="submit"
+                                    className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                                >
+                                    Update
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowEditForm(false)}
+                                    className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
             <div className="bg-white shadow overflow-hidden sm:rounded-md">
                 <ul className="divide-y divide-gray-200">
                     {courses.map((course) => (
                         <li key={course.id} className="px-6 py-4">
                             <div className="flex items-center justify-between">
-                                <div>
+                                <div className="flex-1">
                                     <h3 className="text-sm font-medium text-gray-900">
                                         {course.name} ({course.code})
                                     </h3>
-                                    <p className="text-sm text-gray-500">{course.description}</p>
+                                    {course.description && (
+                                        <p className="text-sm text-gray-500">{course.description}</p>
+                                    )}
                                     <p className="text-sm text-gray-500">
                                         Credits: {course.credits} | Instructor: {course.instructor || 'TBD'}
                                     </p>
+                                    <p className="text-sm text-gray-500">
+                                        Created: {new Date(course.createdAt).toLocaleDateString()}
+                                    </p>
+                                </div>
+                                <div className="flex space-x-2">
+                                    <button
+                                        onClick={() => openEditForm(course)}
+                                        className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                                    >
+                                        Edit
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteCourse(course.id)}
+                                        className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+                                    >
+                                        Delete
+                                    </button>
                                 </div>
                             </div>
                         </li>
@@ -421,6 +725,17 @@ const EnrollmentsTab = ({ enrollments, onRefresh }) => {
             onRefresh();
         } catch (error) {
             alert(error.response?.data?.message || 'Error enrolling student');
+        }
+    };
+
+    const handleRemoveEnrollment = async (enrollmentId) => {
+        if (confirm('Are you sure you want to remove this enrollment?')) {
+            try {
+                await axios.delete(`/courses/enrollments/${enrollmentId}`);
+                onRefresh();
+            } catch (error) {
+                alert(error.response?.data?.message || 'Error removing enrollment');
+            }
         }
     };
 
@@ -492,7 +807,7 @@ const EnrollmentsTab = ({ enrollments, onRefresh }) => {
                     {enrollments.map((enrollment) => (
                         <li key={enrollment.id} className="px-6 py-4">
                             <div className="flex items-center justify-between">
-                                <div>
+                                <div className="flex-1">
                                     <h3 className="text-sm font-medium text-gray-900">
                                         {enrollment.studentName}
                                     </h3>
@@ -502,9 +817,19 @@ const EnrollmentsTab = ({ enrollments, onRefresh }) => {
                                     <p className="text-sm text-gray-500">
                                         Enrolled: {new Date(enrollment.enrolledAt).toLocaleDateString()}
                                     </p>
+                                    {enrollment.grade && (
+                                        <p className="text-sm text-gray-500">
+                                            Grade: {enrollment.grade} {enrollment.letterGrade ? `(${enrollment.letterGrade})` : ''}
+                                        </p>
+                                    )}
                                 </div>
-                                <div className="text-sm text-gray-500">
-                                    {enrollment.grade ? `Grade: ${enrollment.grade}` : 'No grade yet'}
+                                <div className="flex space-x-2">
+                                    <button
+                                        onClick={() => handleRemoveEnrollment(enrollment.id)}
+                                        className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+                                    >
+                                        Remove
+                                    </button>
                                 </div>
                             </div>
                         </li>
