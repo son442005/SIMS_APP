@@ -81,7 +81,7 @@ namespace SIMS_APP.Migrations
                     StudentId = table.Column<int>(type: "int", nullable: false),
                     CourseId = table.Column<int>(type: "int", nullable: false),
                     EnrolledAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Grade = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    Grade = table.Column<decimal>(type: "decimal(5,2)", precision: 5, scale: 2, nullable: true),
                     LetterGrade = table.Column<string>(type: "nvarchar(2)", maxLength: 2, nullable: true)
                 },
                 constraints: table =>

@@ -136,7 +136,8 @@ namespace SIMS_APP.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<decimal?>("Grade")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
 
                     b.Property<string>("LetterGrade")
                         .HasMaxLength(2)

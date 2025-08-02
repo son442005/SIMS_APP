@@ -24,10 +24,10 @@ const App = () => {
     return user?.role === 'Admin' ? <AdminDashboard /> : <StudentDashboard />;
 };
 
-// Render the app
-ReactDOM.render(
+// Render the app using createRoot (React 18 compatible)
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
     <AuthProvider>
         <App />
-    </AuthProvider>,
-    document.getElementById('root')
+    </AuthProvider>
 ); 

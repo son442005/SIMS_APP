@@ -10,21 +10,48 @@ const AuthProvider = ({ children }) => {
     useEffect(() => {
         if (token) {
             axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+            // Try to get user info from localStorage
+            const savedUser = localStorage.getItem('user');
+            if (savedUser) {
+                setUser(JSON.parse(savedUser));
+            }
         }
     }, [token]);
 
     const login = async (username, password) => {
+        console.log('=== Frontend Login Attempt ===');
+        console.log('Username:', username);
+        console.log('Password length:', password.length);
+
         try {
+            console.log('Making API call to /auth/login...');
             const response = await axios.post('/auth/login', { username, password });
+            console.log('API Response received:', response.data);
+
             const { token: newToken, username: userUsername, role, userId } = response.data;
 
+            const userInfo = { username: userUsername, role, userId };
+
+            console.log('Setting token and user info...');
             setToken(newToken);
-            setUser({ username: userUsername, role, userId });
+            setUser(userInfo);
             localStorage.setItem('token', newToken);
+            localStorage.setItem('user', JSON.stringify(userInfo));
             axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+
+            console.log('Login successful:', userInfo);
+            console.log('Token set:', newToken ? 'YES' : 'NO');
+            console.log('User set:', userInfo);
+            console.log('Authorization header set:', axios.defaults.headers.common['Authorization'] ? 'YES' : 'NO');
 
             return { success: true };
         } catch (error) {
+            console.error('=== Frontend Login Error ===');
+            console.error('Error object:', error);
+            console.error('Error response:', error.response?.data);
+            console.error('Error status:', error.response?.status);
+            console.error('Error message:', error.message);
+
             return { success: false, message: error.response?.data?.message || 'Login failed' };
         }
     };
@@ -34,13 +61,18 @@ const AuthProvider = ({ children }) => {
             const response = await axios.post('/auth/register', userData);
             const { token: newToken, username: userUsername, role, userId } = response.data;
 
+            const userInfo = { username: userUsername, role, userId };
+
             setToken(newToken);
-            setUser({ username: userUsername, role, userId });
+            setUser(userInfo);
             localStorage.setItem('token', newToken);
+            localStorage.setItem('user', JSON.stringify(userInfo));
             axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
 
+            console.log('Registration successful:', userInfo);
             return { success: true };
         } catch (error) {
+            console.error('Registration error:', error);
             return { success: false, message: error.response?.data?.message || 'Registration failed' };
         }
     };
@@ -49,7 +81,9 @@ const AuthProvider = ({ children }) => {
         setToken(null);
         setUser(null);
         localStorage.removeItem('token');
+        localStorage.removeItem('user');
         delete axios.defaults.headers.common['Authorization'];
+        console.log('Logout successful');
     };
 
     return (
@@ -70,13 +104,20 @@ const Login = ({ onSwitchToRegister }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        console.log('=== Login Form Submit ===');
+        console.log('Form data:', formData);
+
         setLoading(true);
         setError('');
 
         const result = await login(formData.username, formData.password);
+        console.log('Login result:', result);
 
         if (!result.success) {
+            console.log('Login failed, setting error:', result.message);
             setError(result.message);
+        } else {
+            console.log('Login successful, redirecting...');
         }
 
         setLoading(false);

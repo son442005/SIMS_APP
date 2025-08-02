@@ -23,11 +23,18 @@ namespace SIMS_APP.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request)
         {
+            Console.WriteLine($"Login attempt for username: {request.Username}");
+            
             var user = await _authService.AuthenticateUserAsync(request.Username, request.Password);
             
             if (user == null)
+            {
+                Console.WriteLine($"Login failed for username: {request.Username}");
                 return Unauthorized(new { message = "Invalid username or password" });
+            }
 
+            Console.WriteLine($"Login successful for user: {user.Username} (ID: {user.Id}, Role: {user.Role})");
+            
             var token = _authService.GenerateJwtToken(user);
             
             return Ok(new AuthResponse
@@ -42,17 +49,28 @@ namespace SIMS_APP.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
         {
+            Console.WriteLine($"Registration attempt for username: {request.Username}, email: {request.Email}");
+            
             // Check if username already exists
             if (await _context.Users.AnyAsync(u => u.Username == request.Username))
+            {
+                Console.WriteLine($"Registration failed: Username {request.Username} already exists");
                 return BadRequest(new { message = "Username already exists" });
+            }
 
             // Check if email already exists
             if (await _context.Students.AnyAsync(s => s.Email == request.Email))
+            {
+                Console.WriteLine($"Registration failed: Email {request.Email} already exists");
                 return BadRequest(new { message = "Email already exists" });
+            }
 
             // Check if student ID already exists
             if (await _context.Students.AnyAsync(s => s.StudentId == request.StudentId))
+            {
+                Console.WriteLine($"Registration failed: Student ID {request.StudentId} already exists");
                 return BadRequest(new { message = "Student ID already exists" });
+            }
 
             // Create user
             var user = new User
@@ -83,6 +101,8 @@ namespace SIMS_APP.Controllers
             _context.Students.Add(student);
             await _context.SaveChangesAsync();
 
+            Console.WriteLine($"Registration successful for user: {user.Username} (ID: {user.Id})");
+
             var token = _authService.GenerateJwtToken(user);
             
             return Ok(new AuthResponse
@@ -97,11 +117,17 @@ namespace SIMS_APP.Controllers
         [HttpPost("create-admin")]
         public async Task<ActionResult> CreateDefaultAdmin()
         {
+            Console.WriteLine("Creating default admin user...");
+            
             var created = await _authService.CreateDefaultAdminAsync();
             
             if (created)
+            {
+                Console.WriteLine("Default admin created successfully");
                 return Ok(new { message = "Default admin created successfully. Username: admin, Password: admin123" });
+            }
             
+            Console.WriteLine("Admin user already exists");
             return BadRequest(new { message = "Admin user already exists" });
         }
     }

@@ -12,7 +12,7 @@ using SIMS_APP.Data;
 namespace SIMS_APP.Migrations
 {
     [DbContext(typeof(SIMSContext))]
-    [Migration("20250731142417_InitialCreate")]
+    [Migration("20250801185144_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -139,7 +139,8 @@ namespace SIMS_APP.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<decimal?>("Grade")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
 
                     b.Property<string>("LetterGrade")
                         .HasMaxLength(2)

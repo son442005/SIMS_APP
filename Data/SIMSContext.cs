@@ -64,6 +64,7 @@ namespace SIMS_APP.Data
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.LetterGrade).HasMaxLength(2);
+                entity.Property(e => e.Grade).HasPrecision(5, 2); // Allow grades like 95.50
                 
                 // Many-to-many relationship
                 entity.HasOne(e => e.Student)

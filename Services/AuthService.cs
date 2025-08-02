@@ -21,20 +21,33 @@ namespace SIMS_APP.Services
 
         public async Task<User?> AuthenticateUserAsync(string username, string password)
         {
+            Console.WriteLine($"Authenticating user: {username}");
+            
             var user = await _context.Users
                 .FirstOrDefaultAsync(u => u.Username == username);
 
             if (user == null)
+            {
+                Console.WriteLine($"User not found: {username}");
                 return null;
+            }
+
+            Console.WriteLine($"User found: {user.Username} (ID: {user.Id}, Role: {user.Role})");
 
             if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+            {
+                Console.WriteLine($"Password verification failed for user: {username}");
                 return null;
+            }
 
+            Console.WriteLine($"Authentication successful for user: {username}");
             return user;
         }
 
         public string GenerateJwtToken(User user)
         {
+            Console.WriteLine($"Generating JWT token for user: {user.Username}");
+            
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_configuration["JwtSettings:SecretKey"]!);
             
@@ -53,7 +66,10 @@ namespace SIMS_APP.Services
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
-            return tokenHandler.WriteToken(token);
+            var tokenString = tokenHandler.WriteToken(token);
+            
+            Console.WriteLine($"JWT token generated successfully for user: {user.Username}");
+            return tokenString;
         }
 
         public string HashPassword(string password)
@@ -63,9 +79,16 @@ namespace SIMS_APP.Services
 
         public async Task<bool> CreateDefaultAdminAsync()
         {
+            Console.WriteLine("Checking if admin user exists...");
+            
             if (await _context.Users.AnyAsync(u => u.Username == "admin"))
+            {
+                Console.WriteLine("Admin user already exists");
                 return false;
+            }
 
+            Console.WriteLine("Creating admin user...");
+            
             var adminUser = new User
             {
                 Username = "admin",
@@ -76,6 +99,8 @@ namespace SIMS_APP.Services
 
             _context.Users.Add(adminUser);
             await _context.SaveChangesAsync();
+            
+            Console.WriteLine($"Admin user created successfully: {adminUser.Username} (ID: {adminUser.Id})");
             return true;
         }
     }

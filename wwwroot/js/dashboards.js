@@ -38,8 +38,8 @@ const AdminDashboard = () => {
     // Filter and pagination logic
     const getFilteredItems = (items) => {
         if (!searchTerm) return items;
-        return items.filter(item => 
-            Object.values(item).some(value => 
+        return items.filter(item =>
+            Object.values(item).some(value =>
                 value && value.toString().toLowerCase().includes(searchTerm.toLowerCase())
             )
         );
@@ -128,7 +128,7 @@ const AdminDashboard = () => {
                                 className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'students'
                                     ? 'border-indigo-500 text-indigo-600'
                                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                }`}
+                                    }`}
                             >
                                 Students ({students.length})
                             </button>
@@ -137,7 +137,7 @@ const AdminDashboard = () => {
                                 className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'courses'
                                     ? 'border-indigo-500 text-indigo-600'
                                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                }`}
+                                    }`}
                             >
                                 Courses ({courses.length})
                             </button>
@@ -146,7 +146,7 @@ const AdminDashboard = () => {
                                 className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'enrollments'
                                     ? 'border-indigo-500 text-indigo-600'
                                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                }`}
+                                    }`}
                             >
                                 Enrollments ({enrollments.length})
                             </button>
@@ -158,22 +158,22 @@ const AdminDashboard = () => {
                     ) : (
                         <div className="mt-6">
                             {activeTab === 'students' && (
-                                <StudentsTab 
-                                    students={getPaginatedItems(students)} 
+                                <StudentsTab
+                                    students={getPaginatedItems(students)}
                                     onRefresh={loadData}
                                     pagination={renderPagination(students)}
                                 />
                             )}
                             {activeTab === 'courses' && (
-                                <CoursesTab 
-                                    courses={getPaginatedItems(courses)} 
+                                <CoursesTab
+                                    courses={getPaginatedItems(courses)}
                                     onRefresh={loadData}
                                     pagination={renderPagination(courses)}
                                 />
                             )}
                             {activeTab === 'enrollments' && (
-                                <EnrollmentsTab 
-                                    enrollments={getPaginatedItems(enrollments)} 
+                                <EnrollmentsTab
+                                    enrollments={getPaginatedItems(enrollments)}
                                     onRefresh={loadData}
                                     pagination={renderPagination(enrollments)}
                                 />
@@ -956,7 +956,7 @@ const EnrollmentsTab = ({ enrollments, onRefresh, pagination }) => {
 
 // Student Dashboard Component
 const StudentDashboard = () => {
-    const { logout } = useAuth();
+    const { logout, user } = useAuth();
     const [courses, setCourses] = useState([]);
     const [loading, setLoading] = useState(false);
 
@@ -967,10 +967,29 @@ const StudentDashboard = () => {
     const loadMyCourses = async () => {
         setLoading(true);
         try {
+            console.log('=== Loading courses debug ===');
+            console.log('User object:', user);
+            console.log('User ID:', user?.userId);
+            console.log('Authorization header:', axios.defaults.headers.common['Authorization']);
+            console.log('Token from localStorage:', localStorage.getItem('token'));
+
             const response = await axios.get('/students/my-courses');
+            console.log('API Response:', response.data);
             setCourses(response.data);
         } catch (error) {
-            console.error('Error loading courses:', error);
+            console.error('=== Error loading courses ===');
+            console.error('Error object:', error);
+            console.error('Error response:', error.response?.data);
+            console.error('Error status:', error.response?.status);
+            console.error('Error headers:', error.response?.headers);
+
+            // If unauthorized, try to refresh token or redirect to login
+            if (error.response?.status === 401) {
+                console.log('Unauthorized - clearing auth data');
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.reload();
+            }
         }
         setLoading(false);
     };
@@ -988,6 +1007,9 @@ const StudentDashboard = () => {
                             <h1 className="text-xl font-semibold text-gray-900">SIMS Student Dashboard</h1>
                         </div>
                         <div className="flex items-center">
+                            <div className="mr-4 text-sm text-gray-600">
+                                Welcome, {user?.username} (ID: {user?.userId})
+                            </div>
                             <button
                                 onClick={handleLogout}
                                 className="ml-4 px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
@@ -1010,6 +1032,10 @@ const StudentDashboard = () => {
                             {courses.length === 0 ? (
                                 <div className="px-6 py-4 text-center text-gray-500">
                                     You are not enrolled in any courses yet.
+                                    <br />
+                                    <small className="text-xs text-gray-400">
+                                        Debug: Found {courses.length} courses | User: {user?.username} | ID: {user?.userId}
+                                    </small>
                                 </div>
                             ) : (
                                 <ul className="divide-y divide-gray-200">
