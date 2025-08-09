@@ -58,11 +58,21 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Create default admin user
+// Apply migrations and create default admin user
 using (var scope = app.Services.CreateScope())
 {
-    var authService = scope.ServiceProvider.GetRequiredService<AuthService>();
-    await authService.CreateDefaultAdminAsync();
+    try
+    {
+        var context = scope.ServiceProvider.GetRequiredService<SIMSContext>();
+        await context.Database.MigrateAsync();
+
+        var authService = scope.ServiceProvider.GetRequiredService<AuthService>();
+        await authService.CreateDefaultAdminAsync();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Startup DB initialization error: {ex.Message}");
+    }
 }
 
 app.Run();
