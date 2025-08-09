@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Debug Filter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+    <div class="p-4">
+        <h1>Debug Filter Function</h1>
+
+        <!-- Test Filter -->
+        <div class="mb-4 flex items-center space-x-4">
+            <label class="text-sm font-medium text-gray-700">Filter by Course:</label>
+            <select id="courseFilter" onchange="filterEnrollmentsByCourse()"
+                class="px-3 py-2 border border-gray-300 rounded-md">
+                <option value="">All Courses</option>
+                <option value="1">CS101 - Programming</option>
+                <option value="2">MATH101 - Calculus</option>
+            </select>
+            <span id="filterInfo" class="text-sm text-gray-600"></span>
+        </div>
+
+        <!-- Test Items -->
+        <ul>
+            <li class="enrollment-item p-2 border-b" data-course-id="1">Student 1 - Programming</li>
+            <li class="enrollment-item p-2 border-b" data-course-id="2">Student 2 - Calculus</li>
+            <li class="enrollment-item p-2 border-b" data-course-id="1">Student 3 - Programming</li>
+        </ul>
+    </div>
+
+    <script>
+        function filterEnrollmentsByCourse() {
+            console.log('Filter function called!');
+            const courseFilter = document.getElementById('courseFilter');
+            const filterInfo = document.getElementById('filterInfo');
+            const enrollmentItems = document.querySelectorAll('.enrollment-item');
+
+            console.log('Filter value:', courseFilter.value);
+            console.log('Items found:', enrollmentItems.length);
+
+            const selectedCourseId = courseFilter.value;
+            let visibleCount = 0;
+
+            enrollmentItems.forEach(item => {
+                const itemCourseId = item.getAttribute('data-course-id');
+                console.log('Item course ID:', itemCourseId, 'Selected:', selectedCourseId);
+
+                if (!selectedCourseId || itemCourseId === selectedCourseId) {
+                    item.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            // Update filter info
+            if (selectedCourseId) {
+                const selectedOption = courseFilter.options[courseFilter.selectedIndex];
+                const courseName = selectedOption.text;
+                filterInfo.textContent = `Showing ${visibleCount} student(s) enrolled in ${courseName}`;
+                console.log('Filter info updated:', filterInfo.textContent);
+            } else {
+                filterInfo.textContent = '';
+            }
+        }
+
+        // Test on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('Debug page loaded');
+            console.log('Filter elements:', {
+                courseFilter: document.getElementById('courseFilter'),
+                filterInfo: document.getElementById('filterInfo'),
+                enrollmentItems: document.querySelectorAll('.enrollment-item')
+            });
+        });
+    </script>
+</body>
+
+</html>

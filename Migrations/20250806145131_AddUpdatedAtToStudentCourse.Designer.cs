@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SIMS_APP.Data;
 
@@ -11,9 +12,11 @@ using SIMS_APP.Data;
 namespace SIMS_APP.Migrations
 {
     [DbContext(typeof(SIMSContext))]
-    partial class SIMSContextModelSnapshot : ModelSnapshot
+    [Migration("20250806145131_AddUpdatedAtToStudentCourse")]
+    partial class AddUpdatedAtToStudentCourse
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

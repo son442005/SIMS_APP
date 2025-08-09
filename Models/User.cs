@@ -15,11 +15,12 @@ namespace SIMS_APP.Models
         
         [Required]
         [StringLength(20)]
-        public string Role { get; set; } = string.Empty; // "Admin" or "Student"
+        public string Role { get; set; } = string.Empty; // "Admin", "Student", or "Teacher"
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         
-        // Navigation property for Student
+        // Navigation properties
         public Student? Student { get; set; }
+        public Teacher? Teacher { get; set; }
     }
 } 

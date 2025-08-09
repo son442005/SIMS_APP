@@ -20,8 +20,9 @@ namespace SIMS_APP.Models
         [Range(1, 10)]
         public int Credits { get; set; }
         
-        [StringLength(100)]
-        public string? Instructor { get; set; }
+        // Foreign key to Teacher (optional)
+        public int? TeacherId { get; set; }
+        public Teacher? Teacher { get; set; }
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         

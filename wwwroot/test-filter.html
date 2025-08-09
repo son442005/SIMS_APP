@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Filter - SIMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+    <div class="p-8">
+        <h1 class="text-2xl font-bold mb-4">Test Filter Function</h1>
+
+        <p class="mb-4 text-red-600">
+            <strong>Hướng dẫn test:</strong><br>
+            1. Mở Console (F12)<br>
+            2. Chọn môn học từ dropdown<br>
+            3. Xem log và kết quả filter
+        </p>
+
+        <!-- Test Filter -->
+        <div class="mb-4 flex items-center space-x-4 p-4 bg-blue-50 rounded">
+            <label class="text-sm font-medium text-gray-700">Filter by Course:</label>
+            <select id="courseFilter" onchange="filterEnrollmentsByCourse()"
+                class="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="">All Courses</option>
+                <option value="1">CS101 - Programming</option>
+                <option value="2">MATH101 - Calculus</option>
+                <option value="3">ENG101 - English</option>
+            </select>
+            <span id="filterInfo" class="text-sm text-gray-600 font-bold"></span>
+        </div>
+
+        <!-- Test Enrollment Items -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+            <ul id="enrollmentsList" class="divide-y divide-gray-200">
+                <li class="enrollment-item px-6 py-4 border-l-4 border-blue-500" data-course-id="1">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-900">John Doe</h3>
+                            <p class="text-sm text-gray-500">CS101 - Programming</p>
+                            <p class="text-sm text-gray-500">Enrolled: 6/8/2025</p>
+                        </div>
+                        <button class="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700">Remove</button>
+                    </div>
+                </li>
+
+                <li class="enrollment-item px-6 py-4 border-l-4 border-green-500" data-course-id="2">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-900">Jane Smith</h3>
+                            <p class="text-sm text-gray-500">MATH101 - Calculus</p>
+                            <p class="text-sm text-gray-500">Enrolled: 6/8/2025</p>
+                        </div>
+                        <button class="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700">Remove</button>
+                    </div>
+                </li>
+
+                <li class="enrollment-item px-6 py-4 border-l-4 border-blue-500" data-course-id="1">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-900">Bob Wilson</h3>
+                            <p class="text-sm text-gray-500">CS101 - Programming</p>
+                            <p class="text-sm text-gray-500">Enrolled: 6/8/2025</p>
+                        </div>
+                        <button class="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700">Remove</button>
+                    </div>
+                </li>
+
+                <li class="enrollment-item px-6 py-4 border-l-4 border-yellow-500" data-course-id="3">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-900">Alice Brown</h3>
+                            <p class="text-sm text-gray-500">ENG101 - English</p>
+                            <p class="text-sm text-gray-500">Enrolled: 6/8/2025</p>
+                        </div>
+                        <button class="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700">Remove</button>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="mt-6 p-4 bg-gray-100 rounded">
+            <h3 class="font-bold mb-2">Expected Results:</h3>
+            <ul class="text-sm space-y-1">
+                <li><strong>All Courses:</strong> 4 students visible</li>
+                <li><strong>CS101 - Programming:</strong> 2 students (John Doe, Bob Wilson)</li>
+                <li><strong>MATH101 - Calculus:</strong> 1 student (Jane Smith)</li>
+                <li><strong>ENG101 - English:</strong> 1 student (Alice Brown)</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function filterEnrollmentsByCourse() {
+            console.log('🔄 Filter function called!');
+
+            const courseFilter = document.getElementById('courseFilter');
+            const filterInfo = document.getElementById('filterInfo');
+            const enrollmentItems = document.querySelectorAll('.enrollment-item');
+
+            console.log('📊 Elements found:', {
+                courseFilter: courseFilter ? 'Found' : 'NOT FOUND',
+                filterInfo: filterInfo ? 'Found' : 'NOT FOUND',
+                enrollmentItems: enrollmentItems.length + ' items'
+            });
+
+            const selectedCourseId = courseFilter.value;
+            let visibleCount = 0;
+
+            console.log('🎯 Selected Course ID:', selectedCourseId || 'All Courses');
+
+            enrollmentItems.forEach((item, index) => {
+                const itemCourseId = item.getAttribute('data-course-id');
+                const isVisible = !selectedCourseId || itemCourseId === selectedCourseId;
+
+                console.log(`📋 Item ${index + 1}: CourseID=${itemCourseId}, Visible=${isVisible}`);
+
+                if (isVisible) {
+                    item.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            // Update filter info
+            if (selectedCourseId) {
+                const selectedOption = courseFilter.options[courseFilter.selectedIndex];
+                const courseName = selectedOption.text;
+                const infoText = `Showing ${visibleCount} student(s) enrolled in ${courseName}`;
+                filterInfo.textContent = infoText;
+                filterInfo.className = 'text-sm text-green-600 font-bold';
+                console.log('✅ Filter info updated:', infoText);
+            } else {
+                filterInfo.textContent = 'Showing all enrollments';
+                filterInfo.className = 'text-sm text-gray-600 font-bold';
+                console.log('✅ Filter reset to show all');
+            }
+
+            console.log(`📈 Total visible: ${visibleCount}/${enrollmentItems.length}`);
+            console.log('========================');
+        }
+
+        // Test on page load
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('🚀 Test page loaded');
+            console.log('🔍 Available elements:', {
+                courseFilter: document.getElementById('courseFilter'),
+                filterInfo: document.getElementById('filterInfo'),
+                enrollmentItems: document.querySelectorAll('.enrollment-item')
+            });
+
+            // Initialize filter
+            filterEnrollmentsByCourse();
+        });
+    </script>
+</body>
+
+</html>

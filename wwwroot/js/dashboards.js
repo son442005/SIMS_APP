@@ -14,13 +14,17 @@ const AdminDashboard = () => {
         loadData();
     }, []);
 
-    const loadData = async () => {
+    const loadData = async (courseFilter = '') => {
         setLoading(true);
         try {
+            const enrollmentsUrl = courseFilter
+                ? `/courses/enrollments?courseId=${courseFilter}`
+                : '/courses/enrollments';
+
             const [studentsRes, coursesRes, enrollmentsRes] = await Promise.all([
                 axios.get('/students'),
                 axios.get('/courses'),
-                axios.get('/courses/enrollments')
+                axios.get(enrollmentsUrl)
             ]);
             setStudents(studentsRes.data);
             setCourses(coursesRes.data);
@@ -801,6 +805,7 @@ const EnrollmentsTab = ({ enrollments, onRefresh, pagination }) => {
     });
     const [students, setStudents] = useState([]);
     const [courses, setCourses] = useState([]);
+    const [selectedCourseFilter, setSelectedCourseFilter] = useState('');
 
     useEffect(() => {
         loadStudentsAndCourses();
@@ -845,6 +850,11 @@ const EnrollmentsTab = ({ enrollments, onRefresh, pagination }) => {
         }
     };
 
+    const handleCourseFilterChange = (e) => {
+        setSelectedCourseFilter(e.target.value);
+        onRefresh(e.target.value); // Pass courseId to parent for filtering
+    };
+
     return (
         <div>
             <div className="flex justify-between items-center mb-4">
@@ -855,6 +865,27 @@ const EnrollmentsTab = ({ enrollments, onRefresh, pagination }) => {
                 >
                     Enroll Student
                 </button>
+            </div>
+
+            <div className="mb-4 flex items-center space-x-4">
+                <label className="text-sm font-medium text-gray-700">Filter by Course:</label>
+                <select
+                    value={selectedCourseFilter}
+                    onChange={handleCourseFilterChange}
+                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                    <option value="">All Courses</option>
+                    {courses.map(course => (
+                        <option key={course.id} value={course.id}>
+                            {course.code} - {course.name}
+                        </option>
+                    ))}
+                </select>
+                {selectedCourseFilter && (
+                    <span className="text-sm text-gray-600">
+                        Showing {enrollments.length} student(s) enrolled in selected course
+                    </span>
+                )}
             </div>
 
             {showEnrollForm && (

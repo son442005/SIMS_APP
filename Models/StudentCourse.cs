@@ -14,6 +14,7 @@ namespace SIMS_APP.Models
         public Course Course { get; set; } = null!;
         
         public DateTime EnrolledAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; }
         
         // Grade information
         public decimal? Grade { get; set; } // Nullable grade

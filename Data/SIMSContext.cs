@@ -11,6 +11,7 @@ namespace SIMS_APP.Data
 
         public DbSet<User> Users { get; set; }
         public DbSet<Student> Students { get; set; }
+        public DbSet<Teacher> Teachers { get; set; }
         public DbSet<Course> Courses { get; set; }
         public DbSet<StudentCourse> StudentCourses { get; set; }
 
@@ -48,6 +49,28 @@ namespace SIMS_APP.Data
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
+            // Configure Teacher entity
+            modelBuilder.Entity<Teacher>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.FirstName).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.LastName).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Email).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.TeacherId).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.PhoneNumber).HasMaxLength(20);
+                entity.Property(e => e.Address).HasMaxLength(200);
+                entity.Property(e => e.Department).HasMaxLength(200);
+                entity.Property(e => e.Specialization).HasMaxLength(100);
+                entity.HasIndex(e => e.Email).IsUnique();
+                entity.HasIndex(e => e.TeacherId).IsUnique();
+                
+                // One-to-one relationship with User
+                entity.HasOne(e => e.User)
+                      .WithOne(e => e.Teacher)
+                      .HasForeignKey<Teacher>(e => e.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
             // Configure Course entity
             modelBuilder.Entity<Course>(entity =>
             {
@@ -55,8 +78,13 @@ namespace SIMS_APP.Data
                 entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.Code).IsRequired().HasMaxLength(20);
                 entity.Property(e => e.Description).HasMaxLength(500);
-                entity.Property(e => e.Instructor).HasMaxLength(100);
                 entity.HasIndex(e => e.Code).IsUnique();
+                
+                // Many-to-one relationship with Teacher
+                entity.HasOne(e => e.Teacher)
+                      .WithMany(e => e.Courses)
+                      .HasForeignKey(e => e.TeacherId)
+                      .OnDelete(DeleteBehavior.SetNull);
             });
 
             // Configure StudentCourse entity (many-to-many)

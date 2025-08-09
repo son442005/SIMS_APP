@@ -7,7 +7,8 @@ namespace SIMS_APP.DTOs
         public string Code { get; set; } = string.Empty;
         public string? Description { get; set; }
         public int Credits { get; set; }
-        public string? Instructor { get; set; }
+        public int? TeacherId { get; set; }
+        public string? TeacherName { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 
@@ -17,7 +18,7 @@ namespace SIMS_APP.DTOs
         public string Code { get; set; } = string.Empty;
         public string? Description { get; set; }
         public int Credits { get; set; }
-        public string? Instructor { get; set; }
+        public int TeacherId { get; set; }
     }
 
     public class UpdateCourseRequest
@@ -26,7 +27,7 @@ namespace SIMS_APP.DTOs
         public string Code { get; set; } = string.Empty;
         public string? Description { get; set; }
         public int Credits { get; set; }
-        public string? Instructor { get; set; }
+        public int TeacherId { get; set; }
     }
 
     public class StudentCourseDTO
@@ -47,4 +48,11 @@ namespace SIMS_APP.DTOs
         public int StudentId { get; set; }
         public int CourseId { get; set; }
     }
+
+    public class AssignTeacherRequest
+    {
+        public int TeacherId { get; set; }
+    }
+
+
 } 
