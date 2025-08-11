@@ -37,8 +37,6 @@ namespace SIMS_APP.Controllers
                     TeacherId = t.TeacherId,
                     PhoneNumber = t.PhoneNumber,
                     Address = t.Address,
-                    Department = t.Department,
-                    Specialization = t.Specialization,
                     CreatedAt = t.CreatedAt,
                     Username = t.User.Username
                 })
@@ -67,8 +65,6 @@ namespace SIMS_APP.Controllers
                 TeacherId = teacher.TeacherId,
                 PhoneNumber = teacher.PhoneNumber,
                 Address = teacher.Address,
-                Department = teacher.Department,
-                Specialization = teacher.Specialization,
                 CreatedAt = teacher.CreatedAt,
                 Username = teacher.User.Username
             };
@@ -130,8 +126,6 @@ namespace SIMS_APP.Controllers
                     TeacherId = request.TeacherId,
                     PhoneNumber = request.PhoneNumber,
                     Address = request.Address,
-                    Department = request.Department,
-                    Specialization = request.Specialization,
                     CreatedAt = DateTime.UtcNow,
                     UserId = user.Id
                 };
@@ -149,8 +143,6 @@ namespace SIMS_APP.Controllers
                     TeacherId = teacher.TeacherId,
                     PhoneNumber = teacher.PhoneNumber,
                     Address = teacher.Address,
-                    Department = teacher.Department,
-                    Specialization = teacher.Specialization,
                     CreatedAt = teacher.CreatedAt,
                     Username = user.Username
                 };
@@ -189,8 +181,6 @@ namespace SIMS_APP.Controllers
             teacher.TeacherId = request.TeacherId;
             teacher.PhoneNumber = request.PhoneNumber;
             teacher.Address = request.Address;
-            teacher.Department = request.Department;
-            teacher.Specialization = request.Specialization;
 
             await _context.SaveChangesAsync();
 

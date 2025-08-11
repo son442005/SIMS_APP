@@ -188,11 +188,11 @@ async function handleLogin(e) {
         const response = await axios.post('/auth/login', { username, password });
         console.log('API Response received:', response.data);
 
-        const { token, username: userUsername, role, userId } = response.data;
+        const { token, username: userUsername, role, userId, studentId } = response.data;
 
         // Save login data
         currentToken = token;
-        currentUser = { username: userUsername, role, userId };
+        currentUser = { username: userUsername, role, userId, studentId };
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(currentUser));
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -259,11 +259,11 @@ async function handleRegister(e) {
         });
         console.log('API Response received:', response.data);
 
-        const { token, username: userUsername, role, userId } = response.data;
+        const { token, username: userUsername, role, userId, studentId } = response.data;
 
         // Save login data
         currentToken = token;
-        currentUser = { username: userUsername, role, userId };
+        currentUser = { username: userUsername, role, userId, studentId };
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(currentUser));
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -492,7 +492,7 @@ async function loadAdminDashboard() {
                                                             ${student.firstName} ${student.lastName}
                                                         </h3>
                                                         <p class="text-sm text-gray-500">${student.email}</p>
-
+                                                        <p class="text-sm text-gray-500">Student ID: ${student.studentId}</p>
                                                         <p class="text-sm text-gray-500">Username: ${student.username}</p>
                                                     </div>
                                                     <div class="flex space-x-2">
@@ -806,6 +806,21 @@ async function loadStudentDashboard() {
 
                 <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
                     <div class="px-4 py-6 sm:px-0">
+                        <!-- Student Information -->
+                        <div class="bg-white shadow rounded-lg p-6 mb-6">
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Student Information</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-sm text-gray-600">Student ID</p>
+                                    <p class="text-lg font-semibold text-gray-900">${currentUser.studentId || 'N/A'}</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-gray-600">Username</p>
+                                    <p class="text-lg font-semibold text-gray-900">${currentUser.username}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <h2 class="text-lg font-medium text-gray-900 mb-4">My Courses</h2>
                         
                         <div class="bg-white shadow overflow-hidden sm:rounded-md">

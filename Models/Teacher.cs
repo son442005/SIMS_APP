@@ -29,12 +29,6 @@ namespace SIMS_APP.Models
         [StringLength(200)]
         public string? Address { get; set; }
         
-        [StringLength(200)]
-        public string? Department { get; set; }
-        
-        [StringLength(100)]
-        public string? Specialization { get; set; }
-        
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         
         // Foreign key to User

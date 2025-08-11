@@ -59,8 +59,6 @@ namespace SIMS_APP.Data
                 entity.Property(e => e.TeacherId).IsRequired().HasMaxLength(20);
                 entity.Property(e => e.PhoneNumber).HasMaxLength(20);
                 entity.Property(e => e.Address).HasMaxLength(200);
-                entity.Property(e => e.Department).HasMaxLength(200);
-                entity.Property(e => e.Specialization).HasMaxLength(100);
                 entity.HasIndex(e => e.Email).IsUnique();
                 entity.HasIndex(e => e.TeacherId).IsUnique();
                 

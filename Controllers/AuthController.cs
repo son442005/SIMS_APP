@@ -37,12 +37,21 @@ namespace SIMS_APP.Controllers
             
             var token = _authService.GenerateJwtToken(user);
             
+            // Get student ID if user is a student
+            string? studentId = null;
+            if (user.Role == "Student")
+            {
+                var student = await _context.Students.FirstOrDefaultAsync(s => s.UserId == user.Id);
+                studentId = student?.StudentId;
+            }
+            
             return Ok(new AuthResponse
             {
                 Token = token,
                 Username = user.Username,
                 Role = user.Role,
-                UserId = user.Id
+                UserId = user.Id,
+                StudentId = studentId
             });
         }
 
@@ -110,7 +119,8 @@ namespace SIMS_APP.Controllers
                 Token = token,
                 Username = user.Username,
                 Role = user.Role,
-                UserId = user.Id
+                UserId = user.Id,
+                StudentId = student.StudentId
             });
         }
 

@@ -12,7 +12,7 @@ namespace SIMS_APP.Models
         
         [Required]
         [StringLength(20)]
-        public string Code { get; set; } = string.Empty; // Course code like "CS101"
+        public string Code { get; set; } = string.Empty; 
         
         [StringLength(500)]
         public string? Description { get; set; }

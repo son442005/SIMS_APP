@@ -11,8 +11,6 @@ namespace SIMS_APP.DTOs
         public string TeacherId { get; set; } = string.Empty;
         public string? PhoneNumber { get; set; }
         public string? Address { get; set; }
-        public string? Department { get; set; }
-        public string? Specialization { get; set; }
         public DateTime CreatedAt { get; set; }
         public string Username { get; set; } = string.Empty;
     }
@@ -45,8 +43,6 @@ namespace SIMS_APP.DTOs
         
         public string? PhoneNumber { get; set; }
         public string? Address { get; set; }
-        public string? Department { get; set; }
-        public string? Specialization { get; set; }
     }
 
     public class UpdateTeacherRequest
@@ -69,8 +65,6 @@ namespace SIMS_APP.DTOs
         
         public string? PhoneNumber { get; set; }
         public string? Address { get; set; }
-        public string? Department { get; set; }
-        public string? Specialization { get; set; }
     }
 
     public class TeacherCourseDTO
